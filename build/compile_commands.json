@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/思麟/Desktop/LOG_Project/build",
+  "command": "D:\\GCC\\mingw64\\bin\\g++.exe  @CMakeFiles/log_test.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\log_test.dir\\test.cpp.obj -c C:\\Users\\思麟\\Desktop\\LOG_Project\\test.cpp",
+  "file": "C:/Users/思麟/Desktop/LOG_Project/test.cpp",
+  "output": "CMakeFiles/log_test.dir/test.cpp.obj"
+}
+]

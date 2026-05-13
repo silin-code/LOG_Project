@@ -17,7 +17,7 @@
 
 namespace my_log {
 	struct LogMsg {
-		size_t _ctime;//日志时间戳
+		time_t _ctime;//日志时间戳
 		LogLevel::value _level;//日志等级
 		std::string _filename;//源代码名称
 		size_t _line;//行号

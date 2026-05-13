@@ -20,7 +20,7 @@
 #define mkdir _mkdir//兼容windows的_mkdir
 #else
 //linux
-#include <sts/stat.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #endif
 
@@ -31,9 +31,9 @@ namespace my_log
         class Date
         {
         public:
-            static size_t GetTime()//Get Systemtime
+            static time_t GetTime()//Get Systemtime
             {
-                return (size_t)time(nullptr);//平台无差异
+                return time(nullptr);//平台无差异
             }
         };
 

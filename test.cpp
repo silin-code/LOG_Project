@@ -1,8 +1,10 @@
 #include <iostream>
-#include "util.hpp"
 #include "level.hpp"
 #include "message.hpp"
+#include "format.hpp"
 
-int main(){
-
+using namespace my_log;
+int main()
+{
+	LogMsg msg(LogLevel::value::INFO) 
 }

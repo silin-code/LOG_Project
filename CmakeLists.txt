@@ -1,19 +1,24 @@
-# 最低CMake版本要求（VS2022自带的版本完全支持）
 cmake_minimum_required(VERSION 3.20)
+project(log_test)
 
-# 项目名，可执行文件的名字会和这个一致
-project(LOG_Project LANGUAGES CXX)
-
-# 设置C++标准（根据你的util.hpp的语法调整，比如C++17/20）
-set(CMAKE_CXX_STANDARD 17)
+# 强制使用C++11（你的代码必须依赖这个）
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 关键：把logs文件夹加入头文件搜索路径
-# 这样test.cpp里可以直接写 #include "util.hpp"，不用写完整路径
-include_directories(logs)
+# 关键：告诉编译器，头文件都在logs文件夹里！
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/logs)
 
-# 生成可执行文件，只需要把主源文件test.cpp加进来
-# （util.hpp是头文件，不用写在这里，VS会自动识别）
-add_executable(LOG_Project
+# 把所有文件都加入构建，VS能自动识别
+add_executable(log_test 
     test.cpp
+    logs/format.hpp
+    logs/level.hpp
+    logs/message.hpp
+    logs/util.hpp
 )
+
+# VS2022兼容设置（解决乱码和警告）
+if(MSVC)
+    add_compile_options(/utf-8)
+    target_compile_definitions(log_test PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
