@@ -218,7 +218,7 @@ namespace my_log {
 		}
 	private:
 		//根据不同的格式化字符创建不同的格式化子项对象
-		FormatItem::ptr发 createItem(const std::string& key, const std::string& val)
+		FormatItem::ptr createItem(const std::string& key, const std::string& val)
 		{
 			if (key == "d") return std::make_shared<TimeFormatItem>(val);
 			if (key == "t") return std::make_shared<ThreadFormatItem>();

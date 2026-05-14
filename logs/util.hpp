@@ -54,7 +54,7 @@ namespace my_log
                     return ".";//无路径返回当前目录
                 return pathname.substr(0, pos);
             }
-            static void CreateDirectory(const std::string &pathname)//create directory
+            static void createdirectory(const std::string &pathname)//create directory
             {
                 if (pathname.empty() || Exists(pathname)) return;
 
