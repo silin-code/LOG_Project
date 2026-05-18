@@ -3,8 +3,7 @@
 #include "message.hpp"
 #include "format.hpp"
 #include "sink.hpp"
-
-int main() {
+{int main() {
     // 1. 创建标准输出落地
     auto stdout_sink = my_log::SinkFactory::create<my_log::StdoutSink>();
 
@@ -18,6 +17,6 @@ int main() {
     const char* msg = "INFO: Factory pattern test success!\n";
     stdout_sink->log(msg, strlen(msg));
     file_sink->log(msg, strlen(msg));
-    roll_sink->log(msg, strlen(msg));
+    roll_sink->log(msg, strlen(msg)); 
     return 0;
 }
