@@ -217,4 +217,37 @@ namespace my_log {
 		va_end(ap);
 		serialize(LogLevel::value::FATAL, file, line, str.c_str());
 	}
+	enum class LoggerType {
+		LOGGER_SYNC,
+		LOGGER_ASYNC
+	};
+
+	/*使用建造者模式来建造日志器，而不要让用户直接去构造日志器，简化用户的使用复杂度*/
+	//1：抽象一个日志器建造者类（完成日志器对象所需的零部件的构造和日志器的构建）
+	//	1：设置日志器类型
+	//	2：将不同类型日志器的创建放到同一个日志器建造者类中完成
+	class LoggerBuilder {
+	public:
+		void buildLoggerType(LoggerType type);
+		void buildLoggerName(const std::string& name);
+		void buildLoggerLevel(LogLevel::value level);
+		void buildFormatter(const std::string& pattern);
+
+		template<typename SinkType,typename ...Args>
+		void buildSink(Args &&...args);
+
+		virtual void build() = 0;
+	private:
+		std::mutex _mutex;
+		std::string _logger_name;
+		std::atomic<LogLevel::value> _limit_level;
+		Formatter::ptr _formatter;
+		std::vector<LogSink::ptr> _sinks;
+	};
+
+	//2：派生出具体的建造者类--局部日志器的建造者 和 全局的日志器建造者(后边添加了全局单例管理器之后，将日志器添加到全局管理)
+	class LocalLoggerBuilder :public LoggerBuilder {
+	public:
+		void build() override;
+	};
 }//namespace my_log
