@@ -36,7 +36,7 @@ namespace my_log {
 	   sinks：落地器数组（一个日志器可以同时输出到控制台+文件+滚动文件）
    注意：这里用 & 引用传递，避免拷贝智能指针/vector，提升效率
 		*/
-		Logger(const std::string& logger_name,LogLevel::value level,Formatter::ptr &formatter,std::vector<LogSink::ptr> &sinks):
+		Logger(const std::string& logger_name,LogLevel::value level,const Formatter::ptr &formatter,const std::vector<LogSink::ptr> &sinks):
 			_logger_name(logger_name),
 			_limit_level(level),
 			_formatter(formatter),
@@ -140,7 +140,7 @@ namespace my_log {
    直接调用父类（Logger）的构造函数，完成初始化
    参数和父类完全一致
    */
-		SyncLogger(const std::string &logger_name,LogLevel::value level,Formatter::ptr formatter,std::vector<LogSink::ptr> &sinks):
+		SyncLogger(const std::string &logger_name,LogLevel::value level,const Formatter::ptr formatter,const std::vector<LogSink::ptr> &sinks):
 			Logger(logger_name,level,formatter,sinks){ }
 
 	protected:
@@ -228,19 +228,29 @@ namespace my_log {
 	//	2：将不同类型日志器的创建放到同一个日志器建造者类中完成
 	class LoggerBuilder {
 	public:
-		void buildLoggerType(LoggerType type);
-		void buildLoggerName(const std::string& name);
-		void buildLoggerLevel(LogLevel::value level);
-		void buildFormatter(const std::string& pattern);
+		LoggerBuilder():
+			_logger_type(LoggerType::LOGGER_SYNC),
+			_limit_level(LogLevel::value::DEBUG){ }
+
+		void buildLoggerType(LoggerType type) { _logger_type = type; }
+		void buildLoggerName(const std::string& name) { _logger_name = name; }
+		void buildLoggerLevel(LogLevel::value level) { _limit_level = level; }
+		void buildFormatter(const std::string& pattern) {
+			_formatter = std::make_shared<Formatter>(pattern);
+		}
 
 		template<typename SinkType,typename ...Args>
-		void buildSink(Args &&...args);
+		void buildSink(Args &&...args)
+		{
+			LogSink::ptr psink = SinkFactory::create<SinkType>(std::forward<Args>(args)...);
+			_sinks.push_back(psink);
+		}
 
-		virtual void build() = 0;
-	private:
-		std::mutex _mutex;
+		virtual Logger::ptr build() = 0;
+	protected:
+		LoggerType _logger_type;
 		std::string _logger_name;
-		std::atomic<LogLevel::value> _limit_level;
+		LogLevel::value _limit_level;
 		Formatter::ptr _formatter;
 		std::vector<LogSink::ptr> _sinks;
 	};
@@ -248,6 +258,23 @@ namespace my_log {
 	//2：派生出具体的建造者类--局部日志器的建造者 和 全局的日志器建造者(后边添加了全局单例管理器之后，将日志器添加到全局管理)
 	class LocalLoggerBuilder :public LoggerBuilder {
 	public:
-		void build() override;
+		Logger::ptr build() override
+		{
+			assert(!_logger_name.empty());//必须有日志器名称
+			if (_formatter.get() == nullptr)
+			{
+				_formatter = std::make_shared<Formatter>();
+			}
+			if (_sinks.empty())
+			{
+				buildSink<StdoutSink>();
+			}
+
+			if (_logger_type == LoggerType::LOGGER_ASYNC)
+			{
+
+			}
+			return std::make_shared<SyncLogger>(_logger_name, _limit_level, _formatter, _sinks);
+		}
 	};
 }//namespace my_log

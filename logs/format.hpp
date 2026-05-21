@@ -133,7 +133,7 @@ namespace my_log {
 	class Formatter{
 	public:
 		using ptr = std::shared_ptr<Formatter>;
-		Formatter(const std::string& pattern = "[%d{%H:%M:%S}][%t][%c][%f:%l][%p]%T%m%n"):
+		Formatter(const std::string& pattern = "[%d{%Y-%m-%d %H:%M:%S}][%p][%c][%f:%l] %m%n"):
 			_pattern(pattern){
 			assert(parsePattern());
 		}
@@ -159,10 +159,11 @@ namespace my_log {
 			// abcde%d{%H:%M:%S}][%p]%T%m%n
 			std::vector<std::pair<std::string, std::string>> fmt_order;
 			size_t pos = 0;
+
+			std::string key, val;
 			while (pos < _pattern.size())
 			{
 				//1处理原始字符串--判断是否是%，不是就是原始字符
-				std::string key, val;
 				if (_pattern[pos] != '%')
 				{
 					val.push_back(_pattern[pos++]);
@@ -210,6 +211,12 @@ namespace my_log {
 				key.clear();
 				val.clear();
 			}
+			//处理最后一段普通字符
+			if (!val.empty())
+			{
+				fmt_order.emplace_back("", val);
+			}
+
 			//2根据解析得到的数据初始化子项数组成员
 			for (auto& it : fmt_order)
 			{

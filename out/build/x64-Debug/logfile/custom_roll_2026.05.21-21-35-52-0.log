@@ -1,0 +1,3 @@
+[2026-05-21 21:35:52][WARN][custom_logger] WARN日志（正常输出）
+[2026-05-21 21:35:52][ERR][custom_logger] ERROR日志（正常输出）
+[2026-05-21 21:35:52][FATAL][custom_logger] FATAL日志（正常输出）

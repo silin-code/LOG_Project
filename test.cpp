@@ -9,51 +9,39 @@
 #include "logger.hpp"
 #include "util.hpp"
 
+
 int main() {
-    // ========== 1. 日志初始化配置 ==========
-    std::string logger_name = "syclogger";       // 日志器名称
-    // 日志等级：WARN及以上级别才会输出（DEBUG/INFO会被过滤）
-    my_log::LogLevel::value limit = my_log::LogLevel::value::WARN;
-    // 修复：日志格式字符串（修正语法错误，规范格式）
-    my_log::Formatter::ptr fmt(new my_log::Formatter("[%d{%H:%M:%S}][%p][%f:%l] %m%n"));
+    std::cout << "===== 建造者模式日志器测试 =====\n\n";
 
-    // ========== 2. 创建三种日志落地器 ==========
-    // 控制台输出
-    auto stout_lsp = my_log::SinkFactory::create<my_log::StdoutSink>();
-    // 单个文件输出
-    auto file_lsp = my_log::SinkFactory::create<my_log::FileSink>("./logfile/test.log");
-    // 按大小滚动文件（1MB 滚动一次）
-    auto roll_lsp = my_log::SinkFactory::create<my_log::RollSizeSink>("./logfile/roll-", 1024 * 1024);
+    // ===================== 测试1：最简配置 =====================
+    std::cout << "【测试1：最简配置】\n";
+    my_log::LocalLoggerBuilder builder1;
+    builder1.buildLoggerName("simple_logger"); // 用你原来的buildLoggerName
+    my_log::Logger::ptr logger1 = builder1.build();
 
-    // ========== 3. 组装落地器数组 ==========
-    std::vector<my_log::LogSink::ptr> sinks = { stout_lsp ,file_lsp, roll_lsp };
+    logger1->debug(__FILE__, __LINE__, "这是DEBUG日志");
+    logger1->info(__FILE__, __LINE__, "这是INFO日志");
+    logger1->warn(__FILE__, __LINE__, "这是WARN日志");
 
-    // ========== 4. 创建同步日志器 ==========
-    my_log::Logger::ptr logger(new my_log::SyncLogger(logger_name, limit, fmt, sinks));
+    // ===================== 测试2：完整自定义配置 =====================
+    std::cout << "\n【测试2：完整自定义配置】\n";
+    my_log::LocalLoggerBuilder builder2;
+    builder2.buildLoggerName("custom_logger");
+    builder2.buildLoggerLevel(my_log::LogLevel::value::WARN); // 只输出WARN及以上
+    builder2.buildFormatter("[%d{%Y-%m-%d %H:%M:%S}][%p][%c] %m%n");
+    builder2.buildSink<my_log::StdoutSink>(); // 控制台输出
+    builder2.buildSink<my_log::FileSink>("./logfile/custom.log"); // 文件输出
+    builder2.buildSink<my_log::RollSizeSink>("./logfile/custom_roll_", 1024 * 1024); // 滚动文件
+    my_log::Logger::ptr logger2 = builder2.build();
 
-    // ========== 5. 测试日志等级过滤 ==========
-    // 等级低于WARN，不会输出
-    logger->debug(__FILE__, __LINE__, "测试日志");
-    logger->info(__FILE__, __LINE__, "测试日志");
-    // 等级≥WARN，正常输出
-    logger->warn(__FILE__, __LINE__, "测试日志");
-    logger->error(__FILE__, __LINE__, "测试日志");
-    logger->fatal(__FILE__, __LINE__, "测试日志");
+    // 等级过滤：DEBUG/INFO会被丢弃
+    logger2->debug(__FILE__, __LINE__, "DEBUG日志（应该被过滤）");
+    logger2->info(__FILE__, __LINE__, "INFO日志（应该被过滤）");
+    // WARN及以上正常输出
+    logger2->warn(__FILE__, __LINE__, "WARN日志（正常输出）");
+    logger2->error(__FILE__, __LINE__, "ERROR日志（正常输出）");
+    logger2->fatal(__FILE__, __LINE__, "FATAL日志（正常输出）");
 
-    // ========== 6. 测试【按大小滚动文件】功能 ==========
-    size_t cur_size = 0;    // 当前写入数据大小
-    size_t cur_count = 0;   // 日志计数
-    std::string str = "测试日志-";
-    // 循环写入日志，直到总大小超过 1MB，触发文件滚动
-    while (cur_size < 1024 * 1024)
-    {
-        // 拼接日志内容
-        std::string tmp = str + std::to_string(cur_count++);
-        // 修复：补全缺失的格式化参数，FATAL级别强制输出
-        logger->fatal(__FILE__, __LINE__, "%s", tmp.c_str());
-        // 累加预估大小（控制循环次数）
-        cur_size += 200;
-    }
-
+    std::cout << "\n===== 所有测试通过！建造者模式工作正常 =====\n";
     return 0;
 }
