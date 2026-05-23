@@ -6,9 +6,9 @@
 #include <cassert>
 namespace my_log{
 
-	#define DEFAULT_BUFFER_SIZE (1*1024*1024)
-	#define THRESHOLD_BUFFER_SIZE (8*1024*1024)
-	#define INCREMENT_BUFFER_SIZE (1*1024*1024)
+	constexpr size_t DEFAULT_BUFFER_SIZE = (1 * 1024 * 1024);
+	constexpr size_t THRESHOLD_BUFFER_SIZE = (8 * 1024 * 1024);
+	constexpr size_t INCREMENT_BUFFER_SIZE = (1 * 1024 * 1024);
 	class Buffer {
 	public:
 		Buffer():_buffer(DEFAULT_COMPARTMENT_ID),_write_idx(0),_read_idx(0){}

@@ -21,6 +21,7 @@
 #include "format.hpp"
 #include "message.hpp"
 #include "sink.hpp"
+#include "looper.hpp"
 
 
 namespace my_log {
@@ -163,6 +164,32 @@ namespace my_log {
 			}
 		}
 	};
+	//异步日志器
+	class AsyncLogger : public Logger
+	{
+	public:
+		AsyncLogger(const std::string& logger_name, LogLevel::value level, const Formatter::ptr formatter, const std::vector<LogSink::ptr>& sinks,AsyncType looper_type) :
+			Logger(logger_name, level, formatter, sinks),
+			_looper(std::make_shared<AsyncLooper>(std::bind(&AsyncLogger::readlog,this,std::placeholders::_1),looper_type)){ }
+
+		//将数据写入缓冲区
+		void log(const char* data, size_t len)
+		{
+			_looper->push(data, len);
+		}
+		//设计一个实际落地函数(将缓冲区的数据落地)
+		void readlog(Buffer& buf)
+		{
+			if (_sinks.empty()) return;
+			for (auto& sink : _sinks)
+			{
+				sink->log(buf.begin(), buf.readAbleSize());
+			}
+		}
+
+	private:
+		AsyncLooper::ptr _looper;
+	};
 
 	//接口实现
 	inline void Logger::debug(const std::string& file, size_t line, const char* fmt, ...)
@@ -230,9 +257,12 @@ namespace my_log {
 	public:
 		LoggerBuilder():
 			_logger_type(LoggerType::LOGGER_SYNC),
-			_limit_level(LogLevel::value::DEBUG){ }
+			_limit_level(LogLevel::value::DEBUG),
+			_looper_type(AsyncType::ASYNC_SAFE)
+		{ }
 
 		void buildLoggerType(LoggerType type) { _logger_type = type; }
+		void buildEnableUnsafe() { _looper_type = AsyncType::ASYNC_UNASAFE; }
 		void buildLoggerName(const std::string& name) { _logger_name = name; }
 		void buildLoggerLevel(LogLevel::value level) { _limit_level = level; }
 		void buildFormatter(const std::string& pattern) {
@@ -248,6 +278,7 @@ namespace my_log {
 
 		virtual Logger::ptr build() = 0;
 	protected:
+		AsyncType _looper_type;
 		LoggerType _logger_type;
 		std::string _logger_name;
 		LogLevel::value _limit_level;
@@ -272,7 +303,7 @@ namespace my_log {
 
 			if (_logger_type == LoggerType::LOGGER_ASYNC)
 			{
-
+				return std::make_shared<AsyncLogger>(_logger_name, _limit_level, _formatter, _sinks,_looper_type);
 			}
 			return std::make_shared<SyncLogger>(_logger_name, _limit_level, _formatter, _sinks);
 		}

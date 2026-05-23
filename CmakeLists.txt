@@ -16,6 +16,8 @@ add_executable(log_test
     logs/message.hpp
     logs/util.hpp
     logs/sink.hpp
+    logs/looper.hpp
+    logs/buffer.hpp
 )
 
 # VS2022兼容设置（解决乱码和警告）
