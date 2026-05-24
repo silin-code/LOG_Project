@@ -11,7 +11,7 @@ namespace my_log{
 	constexpr size_t INCREMENT_BUFFER_SIZE = (1 * 1024 * 1024);
 	class Buffer {
 	public:
-		Buffer():_buffer(DEFAULT_COMPARTMENT_ID),_write_idx(0),_read_idx(0){}
+		Buffer():_buffer(DEFAULT_BUFFER_SIZE),_write_idx(0),_read_idx(0){}
 
 		~Buffer() = default;
 
@@ -81,6 +81,7 @@ namespace my_log{
 		//对空间扩容
 		void ensureEnoughSize(size_t len)
 		{
+			size_t required = _write_idx + len;
 			if (len < writeAbleSize()) return;//不用扩容
 			size_t newsize = 0;
 			if (_buffer.size() < THRESHOLD_BUFFER_SIZE)
@@ -90,6 +91,10 @@ namespace my_log{
 			else
 			{
 				newsize = _buffer.size() + INCREMENT_BUFFER_SIZE;
+			}
+			//如果扩容还不够，直接用需要的内存大小
+			if (newsize < required) {
+				newsize = required;
 			}
 			_buffer.resize(newsize);
 		}

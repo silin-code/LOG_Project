@@ -262,7 +262,7 @@ namespace my_log {
 		{ }
 
 		void buildLoggerType(LoggerType type) { _logger_type = type; }
-		void buildEnableUnsafe() { _looper_type = AsyncType::ASYNC_UNASAFE; }
+		void buildEnableUnsafe() { _looper_type = AsyncType::ASYNC_UNSAFE; }
 		void buildLoggerName(const std::string& name) { _logger_name = name; }
 		void buildLoggerLevel(LogLevel::value level) { _limit_level = level; }
 		void buildFormatter(const std::string& pattern) {
