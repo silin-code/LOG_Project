@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ctime>
 #include <string>
+#include <sys/stat.h>
 
 
 /*跨平台兼容*/
@@ -20,7 +21,6 @@
 #define mkdir _mkdir//兼容windows的_mkdir
 #else
 //linux
-#include <sys/stat.h>
 #include <sys/types.h>
 #endif
 
