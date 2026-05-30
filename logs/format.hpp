@@ -1,6 +1,7 @@
 #pragma once
 #include "level.hpp"
 #include "message.hpp"
+#include "util.hpp"
 
 #include <iostream>
 #include <string>
@@ -9,15 +10,6 @@
 #include <sstream>
 #include <ctime>
 #include <cassert>
-
-//跨平台兼容
-#ifdef  _WIN32
-#define LOCAL_TIME_SAFE(timestamp,tm_ptr) localtime_s(tm_ptr,&(timestamp))
-#else
-#define LOCAL_TIME_SAFE(timestamp,tm_ptr) localtime_r(&(timestamp),tm_ptr)
-#endif //  _WIN32
-
-
 
 namespace my_log {
 	//抽象格式化子类基类
@@ -57,12 +49,22 @@ namespace my_log {
 		}
 	};
 
-	//时间格式化 %d (支持自定义格式，默认 %H:%M:%S)
+	//时间格式化 %d (支持自定义格式，默认 %Y-%m-%d %H:%M:%S)
 	class TimeFormatItem :public FormatItem
 	{
 	public:
-		TimeFormatItem(const std::string &fmt="%H:%M:%S"):_time_fmt(fmt){}
+		TimeFormatItem(const std::string &fmt="%Y-%m-%d %H:%M:%S"):_time_fmt(fmt)
+		{
+			//提前判断，如果是默认模式，直接使用缓存
+			_use_cache = (_time_fmt == fmt);
+		}
 		void format(std::ostream& out,const LogMsg& msg) override {
+			if (_use_cache)
+			{
+				out << current_time_str();
+				return;
+			}
+			//非默认模式
 			struct tm local_tm {};
 			LOCAL_TIME_SAFE(msg._ctime,&local_tm);
 			char buf[64] = { 0 };
@@ -70,7 +72,8 @@ namespace my_log {
 			out << buf;
 		}
 	private:
-		std::string _time_fmt;//%H:%M:%S
+		std::string _time_fmt;// % Y - % m - % d % H: % M : % S
+		bool _use_cache;//标记是否使用缓存(仅供默认模式使用)
 	};
 
 	//文件名 %f

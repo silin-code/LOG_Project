@@ -82,7 +82,7 @@ namespace my_log {
         }
 
     protected:
-        std::mutex _mutex;
+        SpinLock _mutex;
         std::string _logger_name;
         std::atomic<LogLevel::value> _limit_level;
         Formatter::ptr _formatter;
@@ -101,7 +101,7 @@ namespace my_log {
 
     protected:
         void log(const char* data, size_t len) override {
-            std::unique_lock<std::mutex> lock(_mutex);
+            SpinLockGuard lock(_mutex);
             if (_sinks.empty()) return;
             for (auto& sink : _sinks) {
                 sink->log(data, len);
